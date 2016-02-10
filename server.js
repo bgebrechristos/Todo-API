@@ -1,35 +1,19 @@
 var express = require("express");
+var bodyParser = require("body-parser");
+
 var app = express();
-
 var PORT = process.env.PORT || 3000;
+var todos =[];
+var todoNextId = 1;
 
-var todos = [{
-    id: 1,
-    description: 'Meet mom for lunch',
-    completed: false
-}, {
-    id: 2,
-    description: "Go to market",
-    completed: false
-}, {
-    id:3,
-    description: "Last exerscice trial",
-    completed:true
-}];
-
-app.get('/', function(req, res) {
-    res.send("Todo API Root");
-});
+app.use(bodyParser.json())
 
 app.get('/todos', function(req, res) {
     res.json(todos)
 });
-//need to covert to JSON since we can only pass text back and forth, instead of JSON.stringif or parse we can use res.json
 
 app.get('/todos/:id', function(req,res) {
     var todoId = parseInt(req.params.id, 10);
-    //req.params.id is always a number so change it to string
-    //10 is the base, always use 10 unless you use binary or hexadecimal
     var matchedTodo;
     
     todos.forEach(function (item) {
@@ -45,8 +29,22 @@ app.get('/todos/:id', function(req,res) {
     
 });
 
+//POST /todos
+//different than get becasue it acutally takes data
+
+app.post('/todos', function(req, res) {
+    var body = req.body;
+    
+    //add id field
+    body.id = todoNextId++;
+    
+    //push body into array
+    todos.push(body);
+    
+    res.json(body);
+});
+
+
 app.listen(PORT, function() {
    console.log("Express listening on port " + PORT + "!"); 
 });
-
-//GET request- /todos
