@@ -1,4 +1,5 @@
 var express = require("express");
+var _ = require("lodash");
 var bodyParser = require("body-parser");
 
 var app = express();
@@ -14,15 +15,10 @@ app.get('/todos', function(req, res) {
 
 app.get('/todos/:id', function(req,res) {
     var todoId = parseInt(req.params.id, 10);
-    var matchedTodo;
+    var matchedTodo = _.find(todos, {id: todoId});
     
-    todos.forEach(function (item) {
-        if(item.id === todoId) {
-            matchedTodo = item;
-        } 
-    });
     if(matchedTodo) {
-        res.json(matchedTodo)
+        res.json(matchedTodo);
     } else {
         res.status(404).send();
     }
@@ -30,15 +26,16 @@ app.get('/todos/:id', function(req,res) {
 });
 
 //POST /todos
-//different than get becasue it acutally takes data
 
 app.post('/todos', function(req, res) {
-    var body = req.body;
+    var body = _.pick(req.body, ['completed', 'description']);
+    body.description = body.description.trim();
     
-    //add id field
+    if(!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.length === 0) {
+        return res.status(400).send();
+    }
+   
     body.id = todoNextId++;
-    
-    //push body into array
     todos.push(body);
     
     res.json(body);
