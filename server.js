@@ -29,9 +29,8 @@ app.get('/todos/:id', function(req,res) {
 
 app.post('/todos', function(req, res) {
     var body = _.pick(req.body, ['completed', 'description']);
-    body.description = body.description.trim();
     
-    if(!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.length === 0) {
+    if(!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
         return res.status(400).send();
     }
    
@@ -53,6 +52,38 @@ app.delete('/todos/:id', function(req, res) {
         todos=_.without(todos, matchedTodo);
         res.json(matchedTodo);
     }
+});
+
+// PUT  - to update /todos:id
+
+app.put('/todos/:id', function(req, res) {
+    var body = _.pick(req.body, ['completed', 'description']);
+    var validAttributes = {};
+    var todoId = parseInt(req.params.id, 10);
+    var matchedTodo = _.find(todos, {id: todoId});
+    
+    if (!matchedTodo) {
+        return res.status(404).send();
+    }
+    // validation for body.completed
+    if (body.hasOwnProperty('completed') && _.isBoolean(body.completed)) {
+        validAttributes.completed = body.completed;
+    } else if (body.hasOwnProperty('completed')) {
+        return res.status(400).send();
+    } 
+    
+    // validation for body.description
+    if (body.hasOwnProperty('description') && _.isString(body.description) && body.description.trim().length > 0) {
+        validAttributes = body.description;
+    } else if (body.hasOwnProperty('description')) {
+        return res .status(404).send();
+    } 
+    
+    _.assign(matchedTodo, validAttributes);
+    //we don't need to explicitily update the array becasue objects in js are 
+    //passed by reference and not by value
+    res.json(matchedTodo);
+
 });
 
 app.listen(PORT, function() {
