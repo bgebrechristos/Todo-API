@@ -12,22 +12,26 @@ app.use(bodyParser.json())
 
 // GET /todos?completed=true&q=work
 app.get('/todos', function(req, res) {
-    var queryParams = req.query;
-    var filteredTodos = todos;
+    var query = req.query;
+    var where = {};
     
-    if(queryParams.hasOwnProperty('completed') && queryParams.completed === 'true') {
-        filteredTodos = _.filter(filteredTodos, {'completed' : true})
-    } else if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'false') {
-        filteredTodos= _.filter(filteredTodos, {'completed' : false})
+    if(query.hasOwnProperty('completed')  && query.completed === 'true') {
+      where.completed = true;
+    } else if(query.hasOwnProperty('completed') && query.completed === 'false') {
+      where.completed = false;
     }
     
-    if(queryParams.hasOwnProperty('q') && queryParams.q.length > 0) {
-        filteredTodos = _.filter(filteredTodos, function(item) {
-            return item.description.toLowerCase().indexOf(queryParams.q.toLowerCase()) > -1;
-        });
+    if(query.hasOwnProperty('q')  && query.q.length > 0) {
+      where.description = {
+        $like: '%' + query.q + '%'
+      };
     }
-    
-    res.json(filteredTodos);
+     
+    db.todo.findAll({where: where}).then(function(todos) {
+      res.json(todos).send();
+    }, function(err) {
+      
+    });
 });
 
 app.get('/todos/:id', function(req,res) {
@@ -36,20 +40,13 @@ app.get('/todos/:id', function(req,res) {
     db.todo.findById(todoId).then(function(todo) {
       if (todo) {
         res.json(todo.toJSON());
-      }
+      } else {
         res.status(404).send();
-      }, function(err) {
-        res.status(500).send(err);
-        //500 is a server error
-      });
-    // var matchedTodo = _.find(todos, {id: todoId});
-    
-    // if(matchedTodo) {
-    //     res.json(matchedTodo);
-    // } else {
-    //     res.status(404).send();
-    // }
-    
+      }
+    }, function(err) {
+      res.status(500).send(err);
+      //500 is a server error
+    });
 });
 
 //POST /todos
