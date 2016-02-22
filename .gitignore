@@ -1,3 +1,4 @@
 node_modules/
 todo_HTTP_METHODS/
 playground/Model_validation.js
+data/*.sqlite
